@@ -141,7 +141,19 @@ class UHP
     function page($url)
     {
         $final_url = "http://".$this->host."/".$url;
+        $ctx = stream_context_create(array('http'=>
+            array(
+                'timeout' => 1,  //1200 Seconds is 20 Minutes
+            )
+        ));
         $res = file_get_contents($final_url);
+        if (!$res)
+        {
+            $error = error_get_last();
+            print_r($error);
+            throw new Exception($error['message']);
+            
+        }
         $res = $this->fixtags($res);
         return $res;
     }
@@ -264,7 +276,7 @@ class UHP
 //                echo "\n------------------------$pkey-------------------------------\n";
                 if (!is_numeric($pkey) && $pkey == "options") continue;
                 $gotcha = true;    
-//                echo "Process rule:\n";
+  //              echo "Process rule:\n";
 //                print_r($rule);
                 switch($rule['tpe'])
                 {
@@ -332,7 +344,6 @@ class UHP
     {
         $rules = $this->siteRules();
         $site = $this->rulesReadProcess($rules);
-        print_r($site);
         return $site;
     }
 
@@ -522,7 +533,7 @@ class UHP
         }
     }
 
-    function stationsOnline()
+    function stationsOnline($format = 1)
     {
         $stations = array();
         $bh  = new simple_html_dom();  
@@ -810,7 +821,7 @@ class UHP
 
     /*  ------------ RIP ---------------- */
     public function ripGet()
-    {
+    {                
         return  $this->rulesReadProcess($this->ripRules());
     }
 
