@@ -375,7 +375,7 @@ class UHP
         foreach($p as $key => $record)
         {
             print_r($record);
-            echo "-------------\n";
+//            echo "-------------\n";
             if (isset($record['profile']))
             {
                 $this->profileApply($record['profile']);
@@ -499,7 +499,7 @@ class UHP
             else
                 $url = "cc24?dq=". (string)(($p-1) * 20)."&ta=Next20";
                         
-            echo "$p  $url \n";
+//            echo "$p  $url \n";
             $page = $this->page($url);
             $bh->load($page);
 
@@ -858,10 +858,10 @@ class UHP
         $bh  = new simple_html_dom(); 
         $bh->load($this->page($rules['url']), true, false); 
         $pre =  html_entity_decode($bh->find("pre", 0)->plaintext);    
-        echo $pre;
-        echo "Apply regexp:".$rules['regexp']."\n";
+//        echo $pre;
+//        echo "Apply regexp:".$rules['regexp']."\n";
         preg_match_all($rules['regexp'], $pre, $matches, PREG_SET_ORDER, 0);
-        print_r($matches);
+//        print_r($matches);
         if (!$matches) return;
         foreach($matches[0] as $key => $m)
         {
@@ -878,7 +878,7 @@ class UHP
         $rules =  $this->systemPageRules();
         $s = $this->PageRegexp($rules);
         $s['options'] = explode(" ", $s['options']);
-        print_r($s);
+//        print_r($s);
         return $s;
     }
 
@@ -890,11 +890,11 @@ class UHP
 
     public function getModulator()
     {
-        echo "getModulator!\n";
+//        echo "getModulator!\n";
         $rules =  $this->modulatorPageRules();
-        print_r($rules);
+//        print_r($rules);
         $s = $this->PageRegexp($rules);
-        print_r($s);
+//        print_r($s);
 
     }
 
@@ -906,6 +906,19 @@ class UHP
         print_r($s);
     }
 
+    public function overview()
+    {
+        $page = $this->page("ss40");
+        $profiles = array();
+        $c = new simple_html_dom();        
+        $c->load($page);
+        if ($c)
+        {            
+            $hdr = $c->find('table', 0);
+            echo $hdr->innertext(); 
+        }
+        
+    }      
 
 
     public function dump()
@@ -927,6 +940,8 @@ class UHP
         $dump['protocols']['accel']   = NULL;
         return $dump;    
     }
+
+
 
     public function load($d)
     {

@@ -4,7 +4,7 @@ function jsonapi($data)
 { 
     $postdata = http_build_query(
         array(
-            'uhp' => json_encode($data),
+            json_encode($data),
         )
     );  
     $opts = array('http' =>

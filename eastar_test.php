@@ -155,11 +155,11 @@ function profileTest($uhp)
 
 
 //$uhp = new UHP("172.16.101.66");
-$hub = new UHP("10.0.0.150");
-$hub->SetProfile("uhp1000_3_4_2_7");
+//$hub = new UHP("10.0.0.150");
+//$hub->SetProfile("uhp1000_3_4_2_7");
 
-$uhp = new UHP("172.16.101.66");
-$uhp->SetProfile("uhp1000_3_4_2_7");
+//$uhp = new UHP("172.16.101.66");
+//$uhp->SetProfile("uhp1000_3_4_2_7");
 
 
 //$uhp->hello();
@@ -220,7 +220,10 @@ $uhp->SetProfile("uhp1000_3_4_2_7");
 //profileTest($uhp);
 
 // $hub->getDemodulator1();
-$hub->getModulator();
+// $hub->getModulator();
+
+$uhp = new UHP("11.0.0.2");
+print_r($hub->overview());
 
 
 

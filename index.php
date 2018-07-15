@@ -15,9 +15,13 @@ function uhp_error($err = "unknown")
     die();
 }
 
-if (!isset($_POST['uhp']))  uhp_error("wrong request");
+//print_r($_POST);
+//if (!isset($_POST['uhp']))  uhp_error("wrong request");
 
-$in = json_decode($_POST['uhp'], true);
+//$in = json_decode($_POST['uhp'], true);
+$in = json_decode(file_get_contents('php://input'), true);
+//print_r($in);
+//$in = json_decode($_POST[0], true);
 
 if (!isset($in['op'])) uhp_error("no opcode");
 if (!isset($in['host'])) uhp_error("no host");
@@ -146,6 +150,12 @@ try {
         case 'rip_set':
             if (!isset($in['data'])) uhp_error("no data argument");
             $r['reply'] = $uhp->ripApply($in['data']);
+            break;
+        case 'dump':
+            $r['reply'] = $uhp->dump();
+            break;
+        case 'load':
+            if (!isset($in['data'])) uhp_error("no data argument");
             break;
         default:
             uhp_error("wrong opcode");
