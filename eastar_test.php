@@ -223,11 +223,11 @@ function profileTest($uhp)
 // $hub->getModulator();
 
 $uhp = new UHP("11.0.0.2");
-print_r($hub->overview());
+print_r($uhp->overview());
 
 
 
 //execution time of the script
-echo "Process took ". (number_format(microtime(true) - $start, 2)*1000). " ms.";
+echo "Process took ". (number_format(microtime(true) - $start, 2)*1000). " ms.\n";
 
 ?>

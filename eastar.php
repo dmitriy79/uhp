@@ -129,7 +129,7 @@ class UHP
     function UHP($host =  "192.168.222.222", $login = "", $pwd="")
     {
         $this->host =  $host;
-        if (strlen($user) > 0 && strlen($password)>0)
+        if (strlen($login) > 0 && strlen($pwd)>0)
         {
             $this->use_auth = true;
             $this->login = $login;
@@ -906,18 +906,197 @@ class UHP
         print_r($s);
     }
 
-    public function overview()
+    public function overview() // NEEED FIXES!!!!!!!!!!!!!
     {
         $page = $this->page("ss40");
         $profiles = array();
         $c = new simple_html_dom();        
         $c->load($page);
+        $r = array();
         if ($c)
-        {            
+        {       
+            // Base top Refresh	SN: 20030347	SW: UHP-240 Software	Ver: 3.4.3 (27.06.2018)     
             $hdr = $c->find('table', 0);
-            echo $hdr->innertext(); 
+            if ($hdr)
+            {
+                $r['sn'] = trim($hdr->find("td", 1)->find("b", 0)->plaintext);
+                $r['sw'] = trim($hdr->find("td", 2)->find("b", 0)->plaintext);
+                $r['ver'] = trim($hdr->find("td", 3)->find("b", 0)->plaintext);
+            }
+
+            $state = $c->find('table', 1);        
+            if ($state)
+            {
+                $r['cpuload'] = trim($state->find("td", 1)->find("b", 0)->plaintext);
+                $r['temp'] = trim($state->find("td", 2)->find("b", 0)->plaintext);
+                $r['profile'] = trim($state->find("td", 3)->find("b", 0)->plaintext);
+            }
+
+            // ----------------------- interfaces table
+            $ifaces = $c->find('table', 2);
+            if ($ifaces)
+            {
+                $eth =  $ifaces->find("tr", 2);
+                if ($eth)
+                {
+                    $r['eth']['state']   = $eth->find("td", 1)->plaintext; 
+                    $r['eth']['info']    = $eth->find("td", 2)->find("b", 0)->plaintext;
+                    $r['eth']['txrate']  = $eth->find("td", 3)->plaintext;
+                    $r['eth']['rxrate']  = $eth->find("td", 4)->plaintext; 
+                    $r['eth']['rxerrs']  = $eth->find("td", 5)->plaintext;
+                    preg_match_all('/(\d+).*/m', $r['eth']['rxerrs'], $matches, PREG_SET_ORDER, 0); // <<< FOKING HACK cause bad-html
+                    $r['eth']['rxerrs']  = $matches[0][1];
+
+                }
+
+                $dm1 = $ifaces->find("tr", 3);
+                if ($dm1)
+                {
+                    $r['demod1']['state']   = $dm1->find("td", 1)->plaintext; //->find("a", 0)->plaintext;
+                    $r['demod1']['info']    = $dm1->find("td", 2)->find("b", 0)->plaintext;
+                    $r['demod1']['txrate']  = $dm1->find("td", 3)->plaintext;
+                    $r['demod1']['rxrate']  = $dm1->find("td", 4)->plaintext;
+                    $r['demod1']['rxerrs']  = $dm1->find("td", 5)->plaintext;  
+                    preg_match_all('/(\d+).*/m', $r['demod1']['rxerrs'], $matches, PREG_SET_ORDER, 0);
+                    $r['demod1']['rxerrs']  = $matches[0][1];
+                    unset($matches);
+                }
+
+                $dm2 = $ifaces->find("tr", 4);
+                if ($dm2)
+                {
+                    $r['demod2']['state']   = $dm2->find("td", 1)->plaintext; //->find("a", 0)->plaintext;
+                    $r['demod2']['info']    = $dm2->find("td", 2)->find("b", 0)->plaintext;
+                    $r['demod2']['txrate']  = $dm2->find("td", 3)->plaintext;
+                    $r['demod2']['rxrate']  = $dm2->find("td", 4)->plaintext;
+                    $r['demod2']['rxerrs']  = $dm2->find("td", 5)->plaintext;  
+                    preg_match_all('/(\d+).*/m', $r['demod2']['rxerrs'], $matches, PREG_SET_ORDER, 0);
+                    $r['demod2']['rxerrs']  = $matches[0][1];
+                }
+
+                $mod = $ifaces->find("tr", 5);
+                if ($mod)
+                {
+                    $r['mod']['state']   = $mod->find("td", 1)->plaintext; //->find("a", 0)->plaintext;
+                    $r['mod']['info']    = $mod->find("td", 2)->find("b", 0)->plaintext;
+                    $r['mod']['txrate']  = $mod->find("td", 3)->plaintext;
+                    $r['mod']['rxrate']  = $mod->find("td", 4)->plaintext;
+                    $r['mod']['rxerrs']  = $mod->find("td", 5)->plaintext;  
+                    preg_match_all('/(\d+).*/m', $r['demod2']['rxerrs'], $matches, PREG_SET_ORDER, 0);
+                    $r['mod']['rxerrs']  = $matches[0][1];
+                }
+
+                $net = $ifaces->find("tr", 6);
+                if ($net)
+                {
+                    $r['net']['state']   = $net->find("td", 1)->plaintext; //->find("a", 0)->plaintext;
+                    $r['net']['info']    = $net->find("td", 2)->find("b", 0)->plaintext;
+                    $r['net']['txrate']  = $net->find("td", 3)->plaintext;
+                    $r['net']['rxrate']  = $net->find("td", 4)->plaintext;
+                    $r['net']['rxerrs']  = $net->find("td", 5)->plaintext;  
+                    preg_match_all('/(\d+).*/m', $r['net']['rxerrs'], $matches, PREG_SET_ORDER, 0);
+                    $r['net']['rxerrs']  = $matches[0][1];
+                }
+
+
+                
+            }
+
+            // Stations	Bandwidth	TDMA table
+            $sbt = $c->find('table', 3);
+            if ($sbt)
+            {
+                $l1 =  $sbt->find("tr", 1);
+                if ($l1)
+                {
+                    $r['tdma']['st_enabled'] = $l1->find("td", 1)->plaintext;
+                    $r['tdma']['total_req']  = $l1->find("td", 3)->plaintext;
+                    $r['tdma']['br_rf_lvl']  = $l1->find("td", 5)->plaintext;
+                    preg_match_all('/(.*)dBm*.+/m', $r['tdma']['br_rf_lvl'], $matches, PREG_SET_ORDER, 0);
+                    $r['tdma']['br_rf_lvl']  = $matches[0][1];                            
+                }
+                $l2 =  $sbt->find("tr", 2);
+                if ($l2)
+                {
+                    $r['tdma']['st_online']  = $l2->find("td", 1)->plaintext;
+                    $r['tdma']['rt_req']     = $l2->find("td", 3)->plaintext;
+                    $r['tdma']['fp_lost']    = $l2->find("td", 5)->plaintext;
+                    preg_match_all('/(\d+).*/m', $r['tdma']['fp_lost'], $matches, PREG_SET_ORDER, 0);
+                    $r['tdma']['fp_lost']  = $matches[0][1];
+                }
+
+                $l3 =  $sbt->find("tr", 3);
+                if ($l3)
+                {
+                    $r['tdma']['st_active']  = $l3->find("td", 1)->plaintext;
+                    $r['tdma']['cir_req']    = $l3->find("td", 3)->plaintext;
+                    $r['tdma']['tts_tdt']    = $l3->find("td", 5)->plaintext;
+                    preg_match_all('/(.*)us/m', $r['tdma']['tts_tdt'], $matches, PREG_SET_ORDER, 0);
+                    $r['tdma']['tts_tdt']  = $matches[0][1];                            
+                }
+
+                $l4 =  $sbt->find("tr", 4);
+                if ($l4)
+                {
+                    list($r['tdma']['hubcn_low'], $r['tdma']['hubcn_high'])   = explode("/", $l4->find("td", 1)->plaintext);
+                    $r['tdma']['req_slots']   = $l4->find("td", 3)->plaintext;
+                    $r['tdma']['tts_errs']    = $l4->find("td", 5)->plaintext;
+                    preg_match_all('/(\d+).*/m', $r['tdma']['tts_errs'], $matches, PREG_SET_ORDER, 0);
+                    $r['tdma']['tts_errs']  = $matches[0][1];                            
+                }
+
+                // Stations	Bandwidth	TDMA
+                $l5 =  $sbt->find("tr", 5);
+                if ($l5)
+                {
+                    list($r['tdma']['rembcn_low'], $r['tdma']['remcn_high'])   = explode("/", $l5->find("td", 1)->plaintext);
+                    $r['tdma']['load']   = $l5->find("td", 3)->plaintext;
+                    $r['tdma']['act_channels']    = $l5->find("td", 5)->plaintext;
+                    preg_match_all('/(\d+).*/m', $r['tdma']['act_channels'], $matches, PREG_SET_ORDER, 0);
+                    $r['tdma']['act_channels']  = $matches[0][1];                            
+                }
+            }
+                        
+            
+            // TDM Channel	ACM MODCOD	C/N limit	Stations	Frames TX	Bytes TX
+            $acm = $c->find('table', 4);
+            if ($acm)
+            {
+                $rows =  $acm->find("tr");
+                foreach($rows as $row)
+                {
+                    $id = @$row->find("td", 0)->plaintext;
+                    if (!is_numeric($id)) continue;
+                    $r['tdma_acm'][$id]['modcod'] = $row->find("td", 1)->plaintext;
+                    $r['tdma_acm'][$id]['cnlimit'] = $row->find("td", 2)->plaintext;
+                    $r['tdma_acm'][$id]['stations'] = $row->find("td", 3)->plaintext;
+                    $r['tdma_acm'][$id]['frames_tx'] = $row->find("td", 4)->plaintext;
+                    $r['tdma_acm'][$id]['bytes_tx'] = $row->find("td", 5)->plaintext;
+                }
+            }
+
+            $tdmacm = $c->find('table', 5);
+            if ($tdmacm)
+            {   
+                $rows =  $tdmacm->find("tr");
+                foreach($rows as $row)
+                {
+                    @$id = $row->find("td", 0)->plaintext;
+                    if (!is_numeric($id)) continue;
+                    $r['tdm_acm'][$id]['modcod'] = $row->find("td", 1)->plaintext;
+                    $r['tdm_acm'][$id]['cnlimit'] = $row->find("td", 2)->plaintext;
+                    $r['tdm_acm'][$id]['stations'] = $row->find("td", 3)->plaintext;
+                    $r['tdm_acm'][$id]['frames_rx'] = $row->find("td", 4)->plaintext;
+                    $r['tdm_acm'][$id]['bytes_rx'] = $row->find("td", 5)->plaintext;
+                    $r['tdm_acm'][$id]['crcerrs'] = $row->find("td", 6)->plaintext;
+                }
+            }
+
+
+
+//            echo $ifaces->outertext; 
         }
-        
+        return $r;
     }      
 
 

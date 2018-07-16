@@ -151,6 +151,9 @@ try {
             if (!isset($in['data'])) uhp_error("no data argument");
             $r['reply'] = $uhp->ripApply($in['data']);
             break;
+        case 'overview':
+            $r['reply'] = $uhp->overview();
+            break;
         case 'dump':
             $r['reply'] = $uhp->dump();
             break;
